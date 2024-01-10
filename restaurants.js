@@ -30,284 +30,250 @@ async function connectDB() {
     const Restaurant = mongoose.model(
       "Restaurant",
       restaurantSchema,
-      "restaurant_list"
+      "restaurants_list"
     );
+    const queries = [
+      {
+        query: {},
+        fields: null,
+        description: "1. Consulta todos os documentos",
+      },
+      {
+        query: {},
+        fields: { restaurant_id: 1, name: 1, borough: 1, cuisine: 1 },
+        description: "2. Mostrar campos restaurant_id, name, borough, cuisine",
+      },
+      {
+        query: {},
+        fields: { _id: 0, restaurant_id: 1, name: 1, borough: 1, cuisine: 1 },
+        description:
+          "3. Mostrar campos name, borough, cuisine menos restaurant_id",
+      },
+      {
+        query: {},
+        fields: {
+          _id: 0,
+          restaurant_id: 1,
+          name: 1,
+          borough: 1,
+          "address.zipcode": 1,
+        },
+        description:
+          "4. Mostrar restaurant_id, name, borough,  zip code, menos camp _id",
+      },
+      {
+        query: { borough: "Bronx" },
+        fields: null,
+        description: "5. Restaurantes no Bronx",
+      },
+      {
+        query: { borough: "Bronx" },
+        fields: null,
+        limit: 5,
+        description: "6. Mostrar os primeiros 5 restaurantes no Bronx",
+      },
+      {
+        query: { borough: "Bronx" },
+        fields: null,
+        skip: 5,
+        limit: 5,
+        description:
+          "7. Mostrar os 5 restaurantes no Bronx depois dos 5 primeiros",
+      },
+      {
+        query: { "grades.score": { $gt: 90 } },
+        fields: null,
+        description: "8. Restaurantes que tem score maior a 90.",
+      },
+      {
+        query: { "grades.score": { $gt: 80, $lt: 100 } },
+        fields: null,
+        description:
+          "9. Restaurantes que tem score maior a 80 mas menor que 100",
+      },
+      {
+        query: { "address.coord.0": { $lt: -95.754168 } },
+        fields: null,
+        description:
+          "10. Restaurantes que estão situados em uma longitude inferior a -95.754168",
+      },
+      {
+        query: {
+          cuisine: { $ne: "American" },
+          "grades.score": { $gt: 70 },
+          "address.coord.0": { $lt: -65.754168 },
+        },
+        fields: null,
+        description:
+          "11. Restaurantes que não cozinham comida 'American' e tem score superior a 70 e longitude inferior a -65.754168",
+      },
+      {
+        query: {
+          cuisine: { $ne: "American" },
+          "grades.score": { $gt: 70 },
+          "address.coord.0": { $lt: -65.754168 },
+        },
+        fields: null,
+        description:
+          "12. Restaurantes que não preparam comida 'American' e tem score superior a 70 e se localiza longitudes inferiores a -65.754168.",
+      },
+      {
+        query: {
+          cuisine: { $ne: "American" },
+          "grades.score": { $gt: 70 },
+          "address.coord.0": { $lt: -65.754168 },
+        },
+        fields: null,
+        sort: { cuisine: -1 },
+        description:
+          "13. Restaurantes que não preparam comida 'American', tem alguma nota 'A' e não pertenecem a Brooklyn e ordem ascendente",
+      },
 
-    //1. Consulta para todos os documentos
-    const allRestaurants = await Restaurant.find({});
-    console.log(allRestaurants);
+      {
+        query: { name: /^Wil/ },
+        fields: { restaurant_id: 1, name: 1, borough: 1, cuisine: 1 },
+        description:
+          "14. Restaurant_id, name, borough e culinária nos restaurantes que contem 'Wil' nas três primeiras letras do nome",
+      },
+      {
+        query: { name: /ces$/ },
+        fields: { restaurant_id: 1, name: 1, borough: 1, cuisine: 1 },
+        description:
+          "15. Restaurant_id, name, borough e culinária nos restaurantes que contem 'ces' nas últimas tres letras do nome",
+      },
+      {
+        query: { name: /Reg/ },
+        fields: { restaurant_id: 1, name: 1, borough: 1, cuisine: 1 },
+        description:
+          "16. Restaurant_id, name, borough e culinária dos restaurantes que contem 'Reg' em qualquer lugar do nome",
+      },
+      {
+        query: { borough: "Bronx", cuisine: { $in: ["American", "Chinese"] } },
+        fields: null,
+        description:
+          "17. Restaurantes que pertenecem ao Bronx e preparam pratos americanos ou chineses",
+      },
+      {
+        query: {
+          borough: { $in: ["Staten Island", "Queens", "Bronx", "Brooklyn"] },
+        },
+        fields: { restaurant_id: 1, name: 1, borough: 1, cuisine: 1 },
+        description:
+          "18. Restaurantes com restaurant_id, name, borough e culinária de restaurantes que pertencem a Staten Island, Queens, Bronx ou Brooklyn",
+      },
+      {
+        query: {
+          borough: { $nin: ["Staten Island", "Queens", "Bronx", "Brooklyn"] },
+        },
+        fields: { restaurant_id: 1, name: 1, borough: 1, cuisine: 1 },
+        description:
+          "19. Restaurantes com restaurant_id, name, borough y culinária de restaurantes que NÃO pertencem a Staten Island, Queens, Bronx ou Brooklyn",
+      },
+      {
+        query: { "grades.score": { $lt: 10 } },
+        fields: { restaurant_id: 1, name: 1, borough: 1, cuisine: 1 },
+        description:
+          "20. Restaurantes com restaurant_id, name, borough e culinária de restaurantes que obtiverem pontuação inferior a 10",
+      },
+      {
+        query: {
+          cuisine: "seafood",
+          cuisine: { $nin: ["American", "Chinese"] },
+        },
+        fields: { restaurant_id: 1, name: 1, borough: 1, cuisine: 1 },
+        description:
+          "21. Restaurantes com restaurant_id, name, borough y ccuklinária de restaurantes que preparam seafood exceto se forem American, Chinese ou o nome começa com 'Wil'",
+      },
+      {
+        query: {
+          grades: {
+            $elemMatch: { grade: "A", date: new Date("2014-08-11T00:00:00Z") },
+          },
+          fields: { restaurant_id: 1, name: 1, grades: 1 },
+          description:
+            "22. Restaurante com restaurant_id, name e notas que alcançam score 'A' e uma pontuação de 11 com uma ISODate '2014-08-11T00:00:00Z'",
+        },
+      },
+      {
+        query: {
+          "grades.1": { score: 9, date: new Date("2014-08-11T00:00:00Z") },
+        },
+        fields: { restaurant_id: 1, name: 1, grades: 1 },
+        description:
+          "23. Restaurantes com restaurant_id, name e notas que no 2o elemento da matriz de notas tenha 'A' e um score 9 com ISODate '2014-08-11T00:00:00Z'",
+      },
+      {
+        query: { "address.coord.1": { $gte: 42, $lte: 52 } },
+        fields: { restaurant_id: 1, name: 1, address: 1 },
+        description:
+          "24. Restaurantes com rrestaurant_id, name, endereço e localização geográfica desses restaurantes no segundo elemento da matriz coord e tenha um valor entre 42 e 52",
+      },
+      {
+        query: {},
+        fields: null,
+        sort: { name: 1 },
+        description: "25. Restaurantes por nome em ordem crescente",
+      },
+      {
+        query: {},
+        fields: null,
+        sort: { name: -1 },
+        description: "26. Restaurantes por nome em ordem decrescente",
+      },
+      {
+        query: {},
+        fields: null,
+        sort: { cuisine: 1, borough: -1 },
+        description:
+          "27. Restaurantes por nome de cozinha em ordem crescente e por bairro em ordem decrescente",
+      },
+      {
+        query: { "address.street": { $exists: true } },
+        fields: null,
+        description: "28. Se os endereços contem a rua",
+      },
+      {
+        query: { "address.coord": { $type: "double" } },
+        fields: null,
+        description:
+          "29. Os valores do campo de coordenadas são do tipo double",
+      },
+      {
+        query: { "grades.score": { $mod: [7, 0] } },
+        fields: { restaurant_id: 1, name: 1, grades: 1 },
+        description:
+          "30. Restaurant_id, name e a nota dos restaurantes que retornam 0 como restante após dividir qualquer uma de seus score por 7",
+      },
+      {
+        query: { name: /mon/ },
+        fields: { name: 1, borough: 1, "address.coord": 1, cuisine: 1 },
+        description:
+          "31. Nome de restaurant, borough, longitude, latitude e culinária de restaurantes que contêm 'mon' em alguma parte do nome",
+      },
+      {
+        query: { name: /^Mad/ },
+        fields: { name: 1, borough: 1, "address.coord": 1, cuisine: 1 },
+        description:
+          "32. Restaurant, borough, longitude, latitude e culinária de restaurantes que contêm 'Mad' como as três primeiras letras do nome",
+      },
+    ];
 
-    // // 2. Mostrar campos restaurant_id, name, borough e cuisine
-    // const specificFields = await Restaurant.find(
-    //   {},
-    //   { restaurant_id: 1, name: 1, borough: 1, cuisine: 1 }
-    // );
-    // console.log("Restaurants with specific fields:", specificFields);
+    for (const q of queries) {
+      let resultQuery = Restaurant.find(q.query, q.fields);
 
-    // // 3. Monstrar campos name, borough e cuisine menos restaurant_id,
-    // const specificNoId = await Restaurant.find(
-    //   {},
-    //   { _id: 0, restaurant_id: 1, name: 1, borough: 1, cuisine: 1 }
-    // );
-    // console.log(specificNoId);
+      if (q.skip) {
+        resultQuery = resultQuery.skip(q.skip);
+      }
+      if (q.limit) {
+        resultQuery = resultQuery.limit(q.limit);
+      }
+      if (q.sort) {
+        resultQuery = resultQuery.sort(q.sort);
+      }
 
-    // // 4. Mostrar restaurant_id, name, borough e zip code, mas excluindo o campo _id
-    // const withZipcodeNoId = await Restaurant.find(
-    //   {},
-    //   { _id: 0, restaurant_id: 1, name: 1, borough: 1, "address.zipcode": 1 }
-    // );
-    // console.log(withZipcodeNoId);
-
-    // // 5. Mostrar todos os restaurantes que estão no Bronx.
-    // const bronxRestaurants = await Restaurant.find({ borough: "Bronx" });
-    // console.log(bronxRestaurants);
-
-    // // 6. Mostrar os 5 primeiros restaurantes que estão no Bronx.
-    // const bronxFirstFive = await Restaurant.find({ borough: "Bronx" }).limit(5);
-    // console.log(bronxFirstFive);
-
-    // // 7. Mostrar os 5 restaurantes depois dos 5 primeiros no Bronx.
-    // const skipbronxFirstFive = await Restaurant.find({ borough: "Bronx" })
-    //   .skip(5)
-    //   .limit(5);
-    // console.log(skipbronxFirstFive);
-
-    // // 8. Restaurantes que tem score maior de 90.
-    // const moreScore = await Restaurant.find({ "grades.score": { $gt: 90 } });
-    // console.log(moreScore);
-
-    // // 9. Restaurantes que tem  score maior que 80 mas menos que 100.
-    // const scoreBetween = await Restaurant.find({
-    //   "grades.score": { $gt: 80, $lt: 100 },
-    // });
-    // console.log(scoreBetween);
-
-    // // 10. Restaurantes que estão situados em uma longitude inferior a -95.754168.
-    // const restaurantWithLongitude = await Restaurant.find({
-    //   "address.coord.0": { $lt: -95.754168 },
-    // });
-    // console.log(restaurantWithLongitude);
-
-    // // 11. Restaurantes que não cozinham comida 'American' e tem score superior a 70 e longitud inferior a -65.754168.
-    // const withAndLongitudNoAmerican = await Restaurant.find({
-    //   $and: [
-    //     { cuisine: { $ne: "American " } },
-    //     { "grades.score": { $gt: 70 } },
-    //     { "address.coord.0": { $lt: -65.754168 } },
-    //   ],
-    // });
-    // console.log(withAndLongitudNoAmerican);
-
-    // // 12. Restaurantes que não preparam comida 'americana' e têm pontuação superior a 70 e que, além disso, estão localizados em longitudes inferiores a -65,754168.
-    // const withLongitudNoAmerican = await Restaurant.find({
-    //   cuisine: { $ne: "American " },
-    //   "grades.score": { $gt: 70 },
-    //   "address.coord.0": { $lt: -65.754168 },
-    // });
-    // console.log(withLongitudNoAmerican);
-
-    // // 13. Restaurantes que não preparam comida 'americana', têm nota 'A' e não pertencem ao Brooklyn.
-    // const restaurantAnoBrooklyn = await Restaurant.find({
-    //   cuisine: { $ne: "American " },
-    //   "grades.grade": "A",
-    //   borough: { $ne: "Brooklyn" },
-    // }).sort({ cuisine: -1 });
-    // console.log(restaurantAnoBrooklyn);
-
-    // //  14. Restaurant_id, nome, bairro e culinária dos restaurantes que contêm 'Wil' nas três primeiras letras do nome.
-    // const query = await Restaurant.find(
-    //   {
-    //     name: /^Wil/,
-    //   },
-    //   {
-    //     restaurant_id: 1,
-    //     name: 1,
-    //     borough: 1,
-    //     cuisine: 1,
-    //   }
-    // );
-
-    // // 15. Restaurant_id, o nome, o bairro e a cozinha dos restaurantes que contêm 'ces' nas últimas três letras do nome.
-    // const query = await Restaurant.find(
-    //   {
-    //     name: /ces$/,
-    //   },
-    //   {
-    //     restaurant_id: 1,
-    //     name: 1,
-    //     borough: 1,
-    //     cuisine: 1,
-    //   }
-    // );
-
-    // // 16. ID do restaurante, o nome, o bairro e a culinária dos restaurantes que contêm 'Reg' em qualquer lugar do nome.
-    // const query = await Restaurant.find(
-    //   {
-    //     name: /Reg/,
-    //   },
-    //   {
-    //     restaurant_id: 1,
-    //     name: 1,
-    //     borough: 1,
-    //     cuisine: 1,
-    //   }
-    // );
-
-    // // 17. Restaurantes que pertencem ao Bronx e prepare pratos americanos ou chineses.
-    // const query = await Restaurant.find({
-    //   borough: "Bronx",
-    //   cuisine: { $in: ["American ", "Chinese"] },
-    // });
-
-    // // 18. Restaurant_id, nome, bairro e culinária dos restaurantes pertencentes a Staten Island, Queens, Bronx ou Brooklyn.
-    // const query = await Restaurant.find(
-    //   {
-    //     borough: { $in: ["Staten Island", "Queens", "Bronx", "Brooklyn"] },
-    //   },
-    //   {
-    //     restaurant_id: 1,
-    //     name: 1,
-    //     borough: 1,
-    //     cuisine: 1,
-    //   }
-    // );
-
-    // // 19. Restaurant_id, o nome, o bairro e a culinária dos restaurantes que NÃO estão em Staten Island, Queens, Bronx ou Brooklyn.
-    // const query = await Restaurant.find(
-    //   {
-    //     borough: { $nin: ["Staten Island", "Queens", "Bronx", "Brooklyn"] },
-    //   },
-    //   {
-    //     restaurant_id: 1,
-    //     name: 1,
-    //     borough: 1,
-    //     cuisine: 1,
-    //   }
-    // );
-
-    // // 20. Restaurant_id, nome, bairro e culinária dos restaurantes com pontuação inferior a 10.
-    // const query = await Restaurant.find(
-    //   {
-    //     "grades.score": { $lt: 10 },
-    //   },
-    //   {
-    //     restaurant_id: 1,
-    //     name: 1,
-    //     borough: 1,
-    //     cuisine: 1,
-    //   }
-    // );
-
-    // // 21. ID do restaurante, o nome, o bairro e a culinária dos restaurantes que preparam frutos do mar ('frutos do mar'), a menos que sejam 'americanos', 'chineses' ou o nome do restaurante comece com as letras 'Wil'.
-    // const query = await Restaurant.find(
-    //   {
-    //     cuisine: "seafood",
-    //     cuisine: { $nin: ["American", "Chinese"] },
-    //     name: { $not: /^Wil/ },
-    //   },
-    //   {
-    //     restaurant_id: 1,
-    //     name: 1,
-    //     borough: 1,
-    //     cuisine: 1,
-    //   }
-    // );
-
-    // // 22. Restaurant_id, o nome e as notas dos restaurantes que obtiveram uma nota "A" e uma pontuação de 11 com uma ISODate de "2014-08-11T00:00:00Z".
-    // const query = await Restaurant.find(
-    //   {
-    //     grades: {
-    //       $elemMatch: {
-    //         grade: "A",
-    //         score: 11,
-    //         date: new Date("2014-08-11T00:00:00Z"),
-    //       },
-    //     },
-    //   },
-    //   {
-    //     restaurant_id: 1,
-    //     name: 1,
-    //     grades: 1,
-    //   }
-    // );
-
-    // // 23. Restaurant_id, o nome e as notas dos restaurantes onde o segundo elemento da matriz de notas contém uma nota "A" e uma pontuação de 9 com uma ISODate de "2014-08-11T00:00:00Z".
-    // const query = await Restaurant.find(
-    //   {
-    //     "grades.1": {
-    //       grade: "A",
-    //       score: 9,
-    //       date: new Date("2014-08-11T00:00:00Z"),
-    //     },
-    //   },
-    //   {
-    //     restaurant_id: 1,
-    //     name: 1,
-    //     grades: 1,
-    //   }
-    // );
-
-    // // 24. Restaurant_id, o nome, o endereço e a localização geográfica dos restaurantes onde o segundo elemento da matriz de coordenadas contém um valor entre 42 e 52.
-    // const query = await Restaurant.find(
-    //   { "address.coord.1": { $gte: 42, $lte: 52 } },
-    //   {
-    //     restaurant_id: 1,
-    //     name: 1,
-    //     address: 1,
-    //   }
-    // );
-
-    // // 25. Restaurantes por nome em ordem crescente.
-    // const query = await Restaurant.find({}).sort({ name: 1 });
-
-    // // 26. Restaurantes por nome em ordem decrescente.
-    // const query = await Restaurant.find({}).sort({ name: -1 });
-
-    // // 27. Restaurantes pelo nome da culinária em ordem crescente e pelo bairro em ordem decrescente.
-    // const query = await Restaurant.find({}).sort({ cuisine: 1, borough: -1 });
-
-    // // 28. Consulta para descobrir se os endereços contêm a rua.
-    // const query = await Restaurant.find({
-    //   "address.street": { $exists: true },
-    // });
-
-    // // 29. Documentos da coleção do restaurante onde os valores do campo coord são do tipo Double.
-    // const query = await Restaurant.find({
-    //   "address.coord": { $type: "double" },
-    // });
-
-    // // 30. Restaurant_id, o nome e a nota para os restaurantes que retornam 0 como resto após dividir qualquer uma de suas pontuações por 7.
-    // const query = await Restaurant.find({ "grades.score": { $mod: [7, 0] } }, {
-    //   restaurant_id: 1, name: 1, grades: 1
-    // })
-
-    // // 31. Restaurante, bairro, longitude, latitude e culinária dos restaurantes que contêm 'mon' em algum lugar do nome.
-    // const query = await Restaurant.find(
-    //   {
-    //     name: /mon/,
-    //   },
-    //   {
-    //     name: 1,
-    //     borough: 1,
-    //     "address.coord": 1,
-    //     cuisine: 1,
-    //   }
-    // );
-
-    // // 32. Restaurante, bairro, longitude, latitude e culinária dos restaurantes que contêm 'Mad' nas três primeiras letras do nome.
-    // const query = await Restaurant.find(
-    //   {
-    //     name: /^Mad/,
-    //   },
-    //   {
-    //     name: 1,
-    //     borough: 1,
-    //     "address.coord": 1,
-    //     cuisine: 1,
-    //   }
-    // );
-
-    console.log(query);
+      const results = await resultQuery;
+      console.log(`${q.description}:`, results);
+    }
   } catch (err) {
     console.error("An error occurred while connecting to database", err);
   }
